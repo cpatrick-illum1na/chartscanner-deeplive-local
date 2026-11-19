@@ -1,0 +1,13 @@
+{
+  "name": "chartscanner-deeplive-local",
+  "version": "1.6.0",
+  "private": true,
+  "description": "Local DeepLive-style dashboard with Yahoo OHLCV data and optional LM Studio local model analysis",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests-market-data.js tests-lm-studio.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

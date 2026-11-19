@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07111d" />
+  <meta name="description" content="Local DeepLive-style dashboard with public Yahoo Finance intraday OHLCV bars." />
+  <title>DeepLive — ChartScanner Local</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="ChartScanner home">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span>ChartScanner<span class="brand-ai">.AI</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#overview">Overview</a>
+        <a href="#analysis">DeepSearch</a>
+        <a class="active" href="#live">DeepLive <span class="nav-live-dot"></span></a>
+        <a href="#portfolio">Portfolio</a>
+      </nav>
+      <div class="top-actions">
+        <div class="connection"><span class="pulse-dot"></span><span>YAHOO DATA</span></div>
+        <button class="icon-button" id="settingsButton" aria-label="LM Studio settings" title="LM Studio settings">⚙</button>
+        <button class="icon-button" id="helpButton" aria-label="Help" title="About this demo">?</button>
+        <button class="avatar" id="profileButton" aria-label="Profile">DP</button>
+      </div>
+    </header>
+
+    <main id="top" class="main-content">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow"><span class="eyebrow-line"></span> OMNITRIX INTELLIGENCE</div>
+          <h1>DeepLive <span class="live-pill"><span class="pulse-dot"></span> LIVE ENGINE</span></h1>
+          <p class="page-subtitle">NYSE / Nasdaq stock and cryptocurrency charts with intraday OHLCV, local technical indicators, and optional LM Studio analysis.</p>
+        </div>
+        <div class="heading-right">
+          <div class="feed-status"><span class="status-square"></span><div><strong id="feedStatusTitle">CONNECTING TO YAHOO</strong><small id="feedStatusDetail">Requesting 5-minute OHLCV bars</small></div></div>
+        </div>
+      </div>
+
+      <div class="demo-notice" role="note">
+        <span class="notice-icon">i</span>
+        <span><strong>Market data:</strong> candlesticks are fetched from Yahoo Finance’s unofficial public chart endpoint. Data may be delayed, rate-limited, or unavailable. Parliament scores are calculated locally; an optional LM Studio model can provide a separate interpretation in the verdict panel.</span>
+        <button id="dismissNotice" aria-label="Dismiss notice">×</button>
+      </div>
+
+      <section class="workspace" id="live">
+        <div class="left-column">
+          <section class="panel chart-panel">
+            <div class="chart-panel-head">
+              <div class="instrument-title">
+                <div class="instrument-icon gold-icon" id="instrumentIcon">Au</div>
+                <div>
+                  <div class="symbol-line"><h2 id="symbolName">AAPL</h2><span class="market-tag">NASDAQ</span><span class="market-open"><span></span> 5M OHLCV</span></div>
+                  <div class="instrument-description" id="instrumentDescription">Apple Inc. · Yahoo ticker AAPL</div>
+                </div>
+              </div>
+              <div class="chart-price-block">
+                <div class="main-price mono" id="mainPrice">—</div>
+                <div class="price-change" id="mainChange">Waiting for market data</div>
+              </div>
+            </div>
+            <div class="chart-toolbar">
+              <div class="timeframes" role="group" aria-label="Chart interval">
+                <button class="timeframe" data-timeframe="1m">1m</button>
+                <button class="timeframe active" data-timeframe="5m">5m</button>
+                <button class="timeframe" data-timeframe="15m">15m</button>
+                <button class="timeframe" data-timeframe="1h">1h</button>
+                <button class="timeframe" data-timeframe="4h">4h</button>
+                <button class="timeframe" data-timeframe="1D">1D</button>
+              </div>
+              <div class="chart-tools">
+                <button class="tool-button active" id="candlesButton" title="Candlestick chart"><span class="candles-icon">▥</span><span>Candles</span></button>
+                <button class="tool-button" id="levelsButton" title="Toggle support and resistance"><span>⌁</span><span>Levels</span></button>
+                <button class="tool-button" id="fullscreenButton" title="Expand chart"><span>⛶</span></button>
+              </div>
+            </div>
+            <div class="chart-wrap" id="chartWrap">
+              <canvas id="marketChart" aria-label="Yahoo Finance OHLCV candlestick market chart"></canvas>
+              <div class="chart-watermark">YAHOO FINANCE <span>OHLCV</span></div>
+              <div class="chart-crosshair-v" id="crosshairV"></div>
+              <div class="chart-crosshair-h" id="crosshairH"></div>
+              <div class="chart-tooltip" id="chartTooltip"></div>
+              <div class="chart-legend"><span class="legend-up"></span> Bullish <span class="legend-down"></span> Bearish <span class="legend-line"></span> EMA 9</div>
+            </div>
+            <div class="chart-foot">
+              <span><span class="feed-square"></span> <span id="lastUpdated">Updated just now</span></span>
+              <span>Latest bar <strong id="exchangeTime">—</strong></span>
+              <span class="mono">O <b id="ohlcO">—</b> H <b id="ohlcH">—</b> L <b id="ohlcL">—</b> C <b id="ohlcC">—</b></span>
+            </div>
+            <div class="market-data-footnote" id="marketDataFootnote">Source: Yahoo Finance public chart endpoint · unofficial · delayed data possible.</div>
+          </section>
+
+          <section class="quick-stats" aria-label="Market statistics">
+            <div class="stat-card"><span class="stat-label">SESSION HIGH</span><strong class="mono" id="highStat">—</strong><span class="stat-sub">Session high</span></div>
+            <div class="stat-card"><span class="stat-label">SESSION LOW</span><strong class="mono" id="lowStat">—</strong><span class="stat-sub">Session low</span></div>
+            <div class="stat-card"><span class="stat-label">VOLUME</span><strong class="mono" id="volumeStat">—</strong><span class="stat-sub">Relative: <b class="positive-text">Above avg.</b></span></div>
+            <div class="stat-card"><span class="stat-label">VOLATILITY</span><strong class="mono" id="volatilityStat">—</strong><span class="stat-sub"><span class="vol-bars"><i></i><i></i><i></i><i></i><i></i></span> 3 / 5</span></div>
+          </section>
+
+          <section class="panel analysis-panel" id="analysis">
+            <div class="panel-heading">
+              <div><div class="eyebrow">LOCAL TECHNICAL INDICATORS</div><h3>Indicator consensus</h3></div>
+              <div class="round-label"><span class="round-dot"></span> ROUND <strong id="roundNumber">0842</strong></div>
+            </div>
+            <div class="parliament-summary">
+              <div class="summary-score"><div class="summary-gauge" id="summaryGauge"><span id="summaryScore">72</span><small>/ 100</small></div><div><strong>Consensus strength</strong><small>Weighted parliamentary score</small></div></div>
+              <div class="summary-verdict"><span class="verdict-label">CURRENT CONSENSUS</span><strong id="consensusText">BULLISH BIAS</strong><small id="consensusSubtext">Buyers maintain control across 3 analytical parties.</small></div>
+              <div class="summary-count"><div><strong id="bullVotes">18</strong><small>BUY VOTES</small></div><div><strong id="bearVotes">6</strong><small>SELL VOTES</small></div></div>
+            </div>
+            <div class="party-grid">
+              <article class="party-card market-party">
+                <div class="party-top"><span class="party-icon red-icon">M</span><div><h4>Trend Structure</h4><small>EMA trend &amp; momentum</small></div><span class="party-vote vote-buy" id="marketVote">BUY</span></div>
+                <div class="party-score-row"><strong id="marketScore">82</strong><span>Confidence</span><span class="party-seats">24 seats</span></div>
+                <div class="progress-track"><span id="marketBar" style="width:82%"></span></div>
+                <p id="marketReason">Trend structure remains constructive. Price is holding above short-term support with buyers defending pullbacks.</p>
+                <div class="party-footer"><span>STAN WEINSTEIN</span><span>MARK MINERVINI</span><span>+3</span></div>
+              </article>
+              <article class="party-card pattern-party">
+                <div class="party-top"><span class="party-icon blue-icon">P</span><div><h4>Price Pattern</h4><small>20-bar range position</small></div><span class="party-vote vote-buy" id="patternVote">BUY</span></div>
+                <div class="party-score-row"><strong id="patternScore">74</strong><span>Confidence</span><span class="party-seats">18 seats</span></div>
+                <div class="progress-track"><span id="patternBar" style="width:74%"></span></div>
+                <p id="patternReason">An ascending channel is developing. The current swing structure favors continuation while resistance remains in view.</p>
+                <div class="party-footer"><span>PRICE ACTION</span><span>29 PATTERNS</span><span>+2</span></div>
+              </article>
+              <article class="party-card macd-party">
+                <div class="party-top"><span class="party-icon yellow-icon">M</span><div><h4>Momentum</h4><small>RSI &amp; EMA spread</small></div><span class="party-vote vote-wait" id="macdVote">WAIT</span></div>
+                <div class="party-score-row"><strong id="macdScore">61</strong><span>Confidence</span><span class="party-seats">16 seats</span></div>
+                <div class="progress-track"><span id="macdBar" style="width:61%"></span></div>
+                <p id="macdReason">Momentum is positive but starting to flatten. A fresh histogram expansion would strengthen the continuation case.</p>
+                <div class="party-footer"><span>MACD HISTOGRAM</span><span>RSI DIVERGENCE</span><span>+1</span></div>
+              </article>
+            </div>
+            <div class="debate-bottom"><span class="debate-live"><span class="pulse-dot"></span> Local indicator calculations from downloaded bars</span><span>Next data poll in <strong id="debateCountdown">15s</strong></span></div>
+          </section>
+
+          <section class="panel lower-panel">
+            <div class="tab-bar" role="tablist" aria-label="Analysis details">
+              <button class="detail-tab active" data-tab="levels" role="tab" aria-selected="true">Key levels</button>
+              <button class="detail-tab" data-tab="trade" role="tab" aria-selected="false">Trade plan</button>
+              <button class="detail-tab" data-tab="history" role="tab" aria-selected="false">Prediction history</button>
+            </div>
+            <div class="tab-content" id="tabContent">
+              <div class="levels-grid">
+                <div class="level-item resistance"><span>RESISTANCE 2</span><strong class="mono" id="resistance2">2,415.00</strong><small>Major supply zone</small></div>
+                <div class="level-item resistance"><span>RESISTANCE 1</span><strong class="mono" id="resistance1">2,398.50</strong><small>Near-term ceiling</small></div>
+                <div class="level-item current-level"><span>CURRENT PRICE</span><strong class="mono" id="levelCurrent">2,382.64</strong><small>Live demo price</small></div>
+                <div class="level-item support"><span>SUPPORT 1</span><strong class="mono" id="support1">2,367.20</strong><small>First demand zone</small></div>
+                <div class="level-item support"><span>SUPPORT 2</span><strong class="mono" id="support2">2,348.00</strong><small>Major support</small></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="right-column">
+          <section class="panel scanner-panel">
+            <div class="panel-heading compact-heading"><div><div class="eyebrow">STOCK & CRYPTO SCANNER</div><h3>Choose asset</h3></div><span class="scanner-count">10 WATCHLIST</span></div>
+            <div class="search-wrap"><span class="search-icon">⌕</span><input id="symbolSearch" type="search" placeholder="Search stock, ticker, or crypto..." autocomplete="off" aria-label="Search NYSE or Nasdaq stocks or cryptocurrency"/><kbd>⌘ K</kbd></div>
+            <div class="search-note">Stocks: NYSE / Nasdaq only · Crypto: searchable</div>
+            <div class="asset-list" id="assetList" aria-live="polite"></div>
+            <div class="scanner-footer"><span>WATCHLIST</span><button id="manageWatchlist">Manage list <span>↗</span></button></div>
+          </section>
+
+          <section class="panel verdict-panel">
+            <div class="panel-heading compact-heading"><div><div class="eyebrow">MODEL-ASSISTED PREDICTION</div><h3>Parliament verdict</h3></div><span class="confidence-ring" id="confidenceRing">72%</span></div>
+            <div class="verdict-main bullish" id="verdictMain"><div class="verdict-icon" id="verdictIcon">↗</div><div><span>OVERALL SIGNAL</span><strong id="verdictText">BUY</strong><small id="verdictDetail">Bullish continuation likely</small></div></div>
+            <div class="signal-meter"><div class="signal-meter-head"><span>BUY PRESSURE</span><strong id="buyPressureLabel">72%</strong></div><div class="signal-track"><span id="buyPressureBar" style="width:72%"></span></div><div class="signal-meter-ends"><span>SELL</span><span>BUY</span></div></div>
+            <div class="verdict-stats"><div><span>INDICATOR SCORE</span><strong id="probability">72.4%</strong></div><div><span>TIME HORIZON</span><strong id="timeHorizon">15 MIN</strong></div><div><span>RISK PROFILE</span><strong class="risk-medium">MODERATE</strong></div></div>
+            <div class="verdict-footer"><span>Analysis cycle <strong id="modelCycle">#00842</strong></span><span>Updated <strong id="verdictUpdated">00:00:00</strong></span></div>
+            <div class="lm-result" id="lmResult">
+              <div class="lm-result-head"><span>LM STUDIO INTERPRETATION</span><strong id="lmResultState">LOCAL INDICATORS ONLY</strong></div>
+              <p id="lmResultSummary">Connect a model in Settings to add a second opinion based on the current chart and indicator snapshot.</p>
+              <div class="lm-factor-grid">
+                <div><span>SUPPORTING FACTORS</span><ul id="lmBullishFactors"><li>Awaiting model analysis</li></ul></div>
+                <div><span>RISKS / CONFLICTS</span><ul id="lmBearishFactors"><li>Awaiting model analysis</li></ul></div>
+              </div>
+              <small id="lmInvalidation">The local indicator verdict remains available when LM Studio is not connected.</small>
+            </div>
+          </section>
+
+          <section class="panel trade-panel">
+            <div class="panel-heading compact-heading"><div><div class="eyebrow">RISK MANAGEMENT</div><h3>Suggested trade setup</h3></div><span class="setup-tag">DEMO PLAN</span></div>
+            <div class="trade-direction"><span class="direction-dot"></span><strong id="tradeDirection">LONG SETUP</strong><span>Risk / Reward <b id="rrRatio">1 : 2.4</b></span></div>
+            <div class="trade-levels">
+              <div class="trade-level entry"><span><i></i> ENTRY ZONE</span><strong class="mono" id="entryLevel">2,379.00 – 2,384.00</strong></div>
+              <div class="trade-level stop"><span><i></i> STOP LOSS</span><strong class="mono" id="stopLevel">2,362.00</strong></div>
+              <div class="trade-level target"><span><i></i> TAKE PROFIT 1</span><strong class="mono" id="targetOne">2,405.00</strong></div>
+              <div class="trade-level target"><span><i></i> TAKE PROFIT 2</span><strong class="mono" id="targetTwo">2,421.00</strong></div>
+            </div>
+            <div class="trade-actions"><button class="button button-primary" id="refreshButton"><span class="refresh-symbol">⟳</span> Run analysis</button><button class="button button-dark" id="pauseButton">Ⅱ Pause feed</button></div>
+            <p class="trade-disclaimer">Locally calculated indicator levels only. Not financial advice or an instruction to trade.</p>
+          </section>
+
+          <section class="panel update-panel">
+            <div class="update-icon">↻</div><div><strong>Next market-data update</strong><span>Polling in <b id="nextUpdate">15</b> seconds</span></div><div class="mini-countdown" id="miniCountdown">15</div>
+          </section>
+        </aside>
+      </section>
+
+      <footer class="app-footer"><div class="footer-brand"><span class="brand-mark small-mark"><i></i><i></i><i></i></span> ChartScanner<span class="brand-ai">.AI</span> <span class="footer-separator">·</span> <span>Local DeepLive v1.5 replica</span></div><div><span class="footer-mode"><span></span> UNOFFICIAL MARKET DATA</span><span>Yahoo Finance · delay / availability may vary</span></div></footer>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <div class="eyebrow">LOCAL PREVIEW</div><h3 id="modalTitle">About this DeepLive replica</h3>
+      <p id="modalBody">This dashboard searches Yahoo Finance for common stocks listed on the NYSE or Nasdaq and cryptocurrencies. The exchange restriction applies only to stocks; crypto remains available. Selected charts download intraday OHLCV bars through the local Node server. The provider may delay, throttle, or change access. QQQ is retained in the starter watchlist as a Nasdaq-listed ETF, not a common stock. The Parliament-style scores are deterministic local indicator calculations (EMA, RSI, momentum and range position). An optional LM Studio local model can provide a separate interpretation. No broker is connected.</p>
+      <div class="modal-actions"><button class="button button-primary" id="modalOk">Got it</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="lmSettingsBackdrop" hidden>
+    <div class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="lmSettingsTitle">
+      <button class="modal-close" id="lmSettingsClose" aria-label="Close settings">×</button>
+      <div class="eyebrow">LOCAL INFERENCE</div>
+      <h3 id="lmSettingsTitle">LM Studio integration</h3>
+      <p>Connect a model running on this computer. DeepLive sends the selected chart's recent OHLCV bars and locally calculated indicators to LM Studio for an independent interpretation.</p>
+
+      <label class="settings-label" for="lmBaseUrl">Base URL</label>
+      <div class="settings-inline-field">
+        <input id="lmBaseUrl" type="url" value="http://127.0.0.1:1234/v1" placeholder="http://127.0.0.1:1234/v1" autocomplete="url" />
+        <button class="button button-dark" id="lmLoadModels" type="button">Load models</button>
+      </div>
+      <div class="settings-help">Default LM Studio server address. Use your LM Studio base URL ending in <code>/v1</code>. DeepLive prefers LM Studio's native chat API for reasoning-model compatibility and falls back to OpenAI-compatible chat completions on older versions.</div>
+
+      <label class="settings-label" for="lmModelInput">Model identifier</label>
+      <div class="settings-inline-field">
+        <input id="lmModelInput" list="lmModelOptions" type="text" placeholder="Load models or enter model ID" autocomplete="off" />
+        <datalist id="lmModelOptions"></datalist>
+      </div>
+      <div class="settings-help">Load a model in LM Studio first, then select its ID from the list or enter it manually.</div>
+
+      <label class="settings-check"><input id="lmEnabled" type="checkbox" /> <span>Use LM Studio for the overall market interpretation</span></label>
+      <label class="settings-check"><input id="lmAutoAnalyze" type="checkbox" /> <span>Automatically re-analyze after new chart bars load</span></label>
+
+      <div class="lm-settings-status" id="lmSettingsStatus" role="status" aria-live="polite">Not connected. Start the LM Studio local server, then load models.</div>
+      <div class="settings-actions">
+        <button class="button button-dark" id="lmTestConnection" type="button">Test connection</button>
+        <button class="button button-primary" id="lmSaveSettings" type="button">Save settings</button>
+      </div>
+      <div class="settings-footnote">Local-only: this app accepts loopback addresses (localhost / 127.0.0.1 / ::1). No cloud AI service or API key is used. Model output is an analytical second opinion, not a verified forecast.</div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
